@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#073b55">
+  <meta name="description" content="Discover Philippine beaches, read reviews, plan trips, and explore the islands with The Wave Explorer.">
+  <title>The Wave Explorer | Discover Philippine Beaches</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="redesign.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#home" aria-label="The Wave Explorer home"><span class="brand-icon">≈</span><span>THE WAVE <b>EXPLORER</b></span></a>
+  <nav class="main-nav" aria-label="Main navigation">
+    <a href="#home" data-i18n="navHome">Home</a>
+    <a href="#destinations" data-i18n="navExplore">Explore</a>
+    <a href="#about" data-i18n="navAbout">About</a>
+  </nav>
+  <div class="top-actions">
+    <button class="saved-link" id="savedFilter">♡ <span>Saved</span> <b id="savedCount">0</b></button>
+    <div class="language-switch" role="group" aria-label="Choose language">
+      <button type="button" class="active" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="fil" aria-pressed="false">FIL</button>
+    </div>
+    <button class="btn btn-outline btn-small" id="accountBtn">Sign in</button>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">☰</button>
+  </div>
+</header>
+
+<main id="home">
+  <section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-inner">
+      <p class="kicker" data-i18n="heroKicker">THE PHILIPPINES IS CALLING</p>
+      <p class="hero-edition">AN ISLAND JOURNAL · VOL. 01</p>
+      <h1><span data-i18n="heroLine1">Chase the tide.</span><br><em data-i18n="heroLine2">Find your paradise.</em></h1>
+      <p class="hero-text" data-i18n="heroText">Discover beautiful beaches, local favorites, and unforgettable island experiences across the Philippines.</p>
+      <a class="btn btn-white" href="#destinations"><span data-i18n="heroCta">Explore destinations</span> <span>↗</span></a>
+      <div class="hero-caption"><span></span> 7,641 islands. Countless stories.</div>
+    </div>
+    <div class="hero-side-note">LUZON · VISAYAS · MINDANAO</div>
+    <div class="hero-index"><span>01 / 08</span><span>THE ISLAND ISSUE</span></div>
+  </section>
+
+  <section class="intro section">
+    <div><p class="eyebrow">A FIELD GUIDE TO PARADISE</p><h2>More than a beach.<br><em>It’s a feeling.</em></h2></div>
+    <p>From famous white-sand shores to quiet coastal escapes, The Wave Explorer helps you find a destination, get inspired, and plan your next Philippine beach trip.</p>
+  </section>
+
+  <section class="map-section section" id="map-section">
+    <div class="section-head">
+      <div><p class="eyebrow" data-i18n="mapEyebrow">SEE WHERE THE JOURNEY TAKES YOU</p><h2 data-i18n="mapTitle">Explore the islands</h2></div>
+      <p class="muted map-help" data-i18n="mapHelp">Select a pin to discover a beach.</p>
+    </div>
+    <div id="philippinesMap" aria-label="Interactive map of beach destinations in the Philippines">
+      <div class="map-wave-loader" id="mapWaveLoader" role="status" aria-live="polite">
+        <span class="loader-wave"></span><span class="loader-wave"></span><span class="loader-wave"></span>
+        <span class="loader-label">Loading the islands…</span>
+      </div>
+    </div>
+    <p class="map-credit">Map © OpenStreetMap contributors · Locations are approximate. Check local conditions before travelling.</p>
+  </section>
+
+  <section class="section destinations" id="destinations">
+    <div class="section-head">
+      <div><p class="eyebrow">THE PHILIPPINES’ MOST-LOVED SHORES</p><h2>Shorelines to know</h2><p class="section-deck">Ten iconic escapes to start your island story.</p></div>
+      <span class="muted" id="resultCount">All destinations</span>
+    </div>
+    <div class="search-row">
+      <label class="search"><span>⌕</span><input id="searchInput" placeholder="Search beach, island, or province..." type="search"></label>
+      <div class="chips" id="regionFilters">
+        <button class="chip active" data-region="All">All</button>
+        <button class="chip" data-region="Luzon">Luzon</button>
+        <button class="chip" data-region="Visayas">Visayas</button>
+        <button class="chip" data-region="Mindanao">Mindanao</button>
+      </div>
+    </div>
+    <div class="beach-grid" id="beachGrid" aria-live="polite"></div>
+    <div class="empty" id="emptyState" hidden><h3>No beaches found</h3><p>Try another search or clear your filters.</p><button class="link-btn" id="clearFilters">Clear filters ↗</button></div>
+  </section>
+
+  <section class="planner section" id="planner">
+    <div class="planner-heading"><p class="eyebrow">THE ART OF GETTING AWAY</p><h2>Make the trip<br><em>your own.</em></h2><p>Get a simple budget estimate for your next island escape.</p></div>
+    <form class="budget-card" id="budgetForm">
+      <h3>Beach trip budget estimator</h3><p class="muted small">A planning guide, not a live quote. Adjust the estimates to match your plans.</p>
+      <label>Destination<select id="budgetDestination"></select></label>
+      <div class="form-two"><label>Number of travellers<input id="travellers" type="number" min="1" max="20" value="2"></label><label>Trip length (days)<input id="days" type="number" min="1" max="30" value="3"></label></div>
+      <div class="form-two"><label>Daily food budget / person (₱)<input id="foodCost" type="number" min="0" value="800"></label><label>Daily activities / person (₱)<input id="activityCost" type="number" min="0" value="500"></label></div>
+      <label>Estimated transport for the whole group (₱)<input id="transportCost" type="number" min="0" value="3000"></label>
+      <button class="btn btn-blue full" type="submit">Calculate estimate <span>↗</span></button>
+      <div class="budget-result" id="budgetResult" aria-live="polite">Your estimate will appear here.</div>
+    </form>
+  </section>
+
+  <section class="guides section" id="guides">
+    <div class="section-head"><div><p class="eyebrow">TRAVEL SMART, TRAVEL KIND</p><h2>Island notes</h2></div></div>
+    <div class="guide-grid">
+      <article class="guide-card"><div class="guide-number">01</div><h3>Before you go</h3><p>Check weather advisories, transport schedules, local entry rules, and seasonal conditions before setting out.</p></article>
+      <article class="guide-card"><div class="guide-number">02</div><h3>Getting around</h3><p>Confirm routes and fares with official transport providers or local tourism offices. Travel times can change with weather and traffic.</p></article>
+      <article class="guide-card"><div class="guide-number">03</div><h3>Leave it beautiful</h3><p>Bring reusable essentials, respect wildlife and reef areas, follow local rules, and take your rubbish with you.</p></article>
+    </div>
+  </section>
+
+  <section class="about-section section" id="about">
+    <div class="about-copy">
+      <p class="eyebrow" data-i18n="aboutEyebrow">OUR STORY</p>
+      <h2 data-i18n="aboutTitle">Made for the love of the islands.</h2>
+      <p data-i18n="aboutText">The Wave Explorer is a Philippine beach discovery guide built to help travelers and local explorers find coastlines, learn about destinations, and plan thoughtful trips. We celebrate local places, encourage responsible travel, and keep improving our directory as destination information is checked.</p>
+    </div>
+  </section>
+
+  <section class="cta">
+    <p class="eyebrow light">YOUR NEXT CHAPTER IS OUT THERE</p>
+    <h2>Find a beach worth<br><em>remembering.</em></h2>
+    <a class="btn btn-white" href="#destinations">Start exploring ↗</a>
+  </section>
+</main>
+
+<!-- Dedicated Destination Details View (Phase 2) -->
+<section class="destination-detail-view section" id="destinationDetailView" aria-labelledby="detailTitle" hidden>
+  <div class="detail-topbar">
+    <button type="button" class="btn btn-outline btn-small" id="backToExploreBtn">← Back to Explore</button>
+    <nav class="breadcrumb" id="detailBreadcrumb" aria-label="Breadcrumb">
+      <a href="#home" data-detail-nav="home">Home</a>
+      <span aria-hidden="true">/</span>
+      <a href="#destinations" data-detail-nav="explore">Explore</a>
+      <span aria-hidden="true">/</span>
+      <span id="breadcrumbCurrent" aria-current="page">Destination</span>
+    </nav>
+  </div>
+
+  <!-- 1. Hero Section -->
+  <header class="detail-hero">
+    <div class="detail-hero-media" id="detailImage" role="img" aria-label="Beach hero photo"></div>
+    <div class="detail-hero-body">
+      <p class="eyebrow" id="detailRegion"></p>
+      <h1 id="detailTitle"></h1>
+      <p class="detail-location" id="detailLocation"></p>
+      <p class="detail-intro" id="detailIntro"></p>
+      <div class="detail-actions">
+        <button type="button" class="btn btn-outline" id="saveDetail" aria-pressed="false">
+          <span id="saveDetailIcon" aria-hidden="true">♡</span>
+          <span id="saveDetailText">Save destination</span>
+        </button>
+        <button type="button" class="btn btn-outline" id="shareDestinationBtn">
+          <span aria-hidden="true">↗</span>
+          <span>Share</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 2. About the Beach -->
+  <section class="detail-block" id="aboutBeachBlock" aria-labelledby="aboutBeachHeading">
+    <h2 id="aboutBeachHeading">About the Beach</h2>
+    <p class="detail-copy" id="detailDescription"></p>
+    <div class="detail-about-grid">
+      <article class="detail-card">
+        <h3>Highlights</h3>
+        <ul id="detailHighlights"></ul>
+      </article>
+      <article class="detail-card">
+        <h3>Best Time to Visit</h3>
+        <p id="detailBestTime"></p>
+      </article>
+      <article class="detail-card">
+        <h3>Activities &amp; Attractions</h3>
+        <ul id="detailActivities"></ul>
+      </article>
+    </div>
+  </section>
+
+  <!-- 3. Travel Information (Transportation Only) -->
+  <section class="detail-block" id="travelInfoBlock" aria-labelledby="travelInfoHeading">
+    <h2 id="travelInfoHeading">Travel Information</h2>
+    <p class="muted small">Transportation routes and estimated fares only.</p>
+    <div class="travel-routes-grid">
+      <article class="detail-card">
+        <h3>From Manila</h3>
+        <ol id="routeFromManila"></ol>
+      </article>
+      <article class="detail-card">
+        <h3>From Nearest Major Transport Hub</h3>
+        <ol id="routeFromHub"></ol>
+      </article>
+    </div>
+    <div class="fare-section">
+      <h3>Estimated Fares by Transport Option</h3>
+      <div class="fare-grid" id="fareBreakdown"></div>
+    </div>
+  </section>
+
+  <!-- 4. Photo Gallery -->
+  <section class="detail-block" id="galleryBlock" aria-labelledby="galleryHeading">
+    <h2 id="galleryHeading">Photo Gallery</h2>
+    <div class="detail-gallery-grid" id="detailGallery"></div>
+  </section>
+
+  <!-- 5. Community Reviews -->
+  <section class="detail-block" id="reviewsBlock" aria-labelledby="reviewsHeading">
+    <div class="reviews-header">
+      <div>
+        <h2 id="reviewsHeading">Community Reviews</h2>
+        <div class="rating-line" id="detailRating"></div>
+      </div>
+      <label class="sort-control" for="reviewSort">
+        <span>Sort by</span>
+        <select id="reviewSort">
+          <option value="newest">Newest First</option>
+          <option value="highest">Highest Rated First</option>
+        </select>
+      </label>
+    </div>
+
+    <div id="reviewsList" class="reviews-list" aria-live="polite"></div>
+
+    <form id="reviewForm" class="review-form">
+      <h3>Write a Review</h3>
+      <label>Your rating
+        <select id="reviewRating">
+          <option value="5">★★★★★ — Loved it</option>
+          <option value="4">★★★★☆ — Great</option>
+          <option value="3">★★★☆☆ — Good</option>
+          <option value="2">★★☆☆☆ — Could be better</option>
+          <option value="1">★☆☆☆☆ — Poor</option>
+        </select>
+      </label>
+      <label>Your review
+        <textarea id="reviewText" rows="3" placeholder="Share a helpful, respectful review..." required></textarea>
+      </label>
+      <div class="upload-field">
+        <label for="reviewPhoto">Add a beach photo (optional, max 2 MB)</label>
+        <input id="reviewPhoto" type="file" accept="image/*">
+        <div class="photo-preview-box" id="reviewPhotoPreviewBox" hidden>
+          <img id="reviewPhotoPreview" src="" alt="Selected review photo preview">
+          <div class="photo-preview-meta">
+            <span id="reviewPhotoName" class="tiny"></span>
+            <button type="button" class="remove-photo-btn" id="removeReviewPhotoBtn">Remove photo</button>
+          </div>
+        </div>
+      </div>
+      <p class="tiny muted">Submitted reviews and photos require admin approval before appearing publicly. Stored locally in this browser for now.</p>
+      <div class="review-submit-row">
+        <button class="btn btn-blue" type="submit">Submit review</button>
+      </div>
+    </form>
+  </section>
+</section>
+
+<footer>
+  <a class="brand footer-brand" href="#home"><span class="brand-icon">≈</span><span>THE WAVE <b>EXPLORER</b></span></a>
+  <p>Discover the beauty of Philippine beaches.</p>
+  <div class="footer-meta">
+    <span>© <span id="year"></span> The Wave Explorer</span>
+    <button type="button" class="footer-admin-btn" id="openAdminBtn">Admin</button>
+  </div>
+</footer>
+
+<!-- Account modal: demo-only local profile -->
+<div class="modal-backdrop" id="accountBackdrop" hidden>
+  <section class="modal account-modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+    <button class="close" data-close="accountBackdrop" aria-label="Close">×</button>
+    <p class="eyebrow">JOIN THE EXPLORERS</p>
+    <h2 id="accountTitle">Welcome aboard.</h2>
+    <p class="muted small">Create a local demo profile to try the member experience.</p>
+    <form id="accountForm">
+      <label>Your name<input id="accountName" required placeholder="Your name"></label>
+      <label>Email address<input id="accountEmail" type="email" required placeholder="you@example.com"></label>
+      <button class="btn btn-blue full" type="submit">Continue as demo member</button>
+    </form>
+    <p class="tiny muted">Prototype mode: secure email/password sign-in will be enabled after the Supabase project is configured. Do not enter a real password here yet.</p>
+  </section>
+</div>
+
+<!-- Admin dashboard -->
+<div class="modal-backdrop" id="adminBackdrop" hidden>
+  <section class="modal admin-modal" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+    <button class="close" data-close="adminBackdrop" aria-label="Close">×</button>
+    <p class="eyebrow">SITE MANAGEMENT · DEMO</p>
+    <h2 id="adminTitle">Admin dashboard</h2>
+    <div class="admin-warning">Demo dashboard only. Admin permissions must be secured on a server before public launch.</div>
+    <div class="admin-stats" id="adminStats"></div>
+    <h3>Destination content</h3>
+    <div id="adminBeachList" class="admin-list"></div>
+    <form id="addBeachForm" class="admin-add">
+      <h3>Add a destination (this browser only)</h3>
+      <div class="form-two">
+        <label>Beach name<input id="newBeachName" required></label>
+        <label>Location<input id="newBeachLocation" required></label>
+      </div>
+      <div class="form-two">
+        <label>Region<select id="newBeachRegion"><option>Luzon</option><option>Visayas</option><option>Mindanao</option></select></label>
+        <label>Image URL<input id="newBeachImage" type="url" placeholder="https://..."></label>
+      </div>
+      <label>Short description<textarea id="newBeachDescription" rows="2" required></textarea></label>
+      <button class="btn btn-blue" type="submit">Add destination</button>
+    </form>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="app.js"></script>
+</body>
+</html>
